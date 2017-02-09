@@ -1,2 +1,14 @@
 # jszip-cli
-npm interface for JSZip library
+
+A npm interface for JSZip library https://stuk.github.io/jszip.
+
+Installation
+
+```
+npm install jszip-cli
+```
+
+Usage
+```javascript
+jszip <file>
+```
