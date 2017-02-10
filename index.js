@@ -8,7 +8,6 @@ var ProgressBar = require('progress');
 
 program
     .arguments('<file>')
-    .option('-f, --file <file>', 'File to compress')
     .option('-d, --directory', 'Input entry is a directory to compress')
     .option('-o, --output <output>', 'Output file')
     .option('-l, --level <compressLevel>', 'Compress level')
