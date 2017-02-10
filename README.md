@@ -19,7 +19,6 @@ Options:
 -d, --directory              Input entry is a directory to compress
 -o, --output <output>        Output file
 -l, --level <compressLevel>  Compress level
--r, --regex <regex>          Compress level
 ```
 
 Getting support
