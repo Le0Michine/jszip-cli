@@ -8,13 +8,17 @@ Installation
 npm install jszip-cli
 ```
 
-Usage: index [options] <file>
+Usage:
+```
+jszip [options] <file>
+```
+Options:
 
-  Options:
-
-    -h, --help                   output usage information
-    -f, --file <file>            File to compress
-    -d, --directory              Input entry is a directory to compress
-    -o, --output <output>        Output file
-    -l, --level <compressLevel>  Compress level
-    -r, --regex <regex>          Compress level
+```
+-h, --help                   output usage information
+-f, --file <file>            File to compress
+-d, --directory              Input entry is a directory to compress
+-o, --output <output>        Output file
+-l, --level <compressLevel>  Compress level
+-r, --regex <regex>          Compress level
+```
