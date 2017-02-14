@@ -11,8 +11,6 @@ program
     .option('-d, --directory', 'Input entry is a directory to compress')
     .option('-o, --output <output>', 'Output file')
     .option('-l, --level <compressLevel>', 'Compress level')
-    // .option('-r, --regex <regex>', 'Regex')
-    // .option('-u, --unzip', 'Unzip mode')
     .action(function(file, options) {
         var zip = new JSZip();
         if (options.directory) {
