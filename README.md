@@ -10,13 +10,13 @@ npm install jszip-cli
 
 Usage:
 ```
-jszip [options] <file>
+jszip [options] <entries>
 ```
 Options:
 
 ```
--h, --help                   output usage information
--d, --directory              Input entry is a directory to compress
+<entries>                    One or more files or directories, should be space separated
+-h, --help                   Output usage information
 -o, --output <output>        Output file
 -l, --level <compressLevel>  Compress level
 ```

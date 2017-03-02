@@ -7,50 +7,76 @@ var recursive = require('recursive-readdir');
 var ProgressBar = require('progress');
 
 program
-    .arguments('<file>')
-    .option('-d, --directory', 'Input entry is a directory to compress')
+    .arguments('<entries...>')
+    // .option('-d, --directory', 'Input entry is a directory to compress')
     .option('-o, --output <output>', 'Output file')
     .option('-l, --level <compressLevel>', 'Compress level')
-    .action(function(file, options) {
-        var zip = new JSZip();
-        if (options.directory) {
-            var outputFileName = options.output || file;
-            zip.folder(file);
-            recursive(file, (errors, files) => {
-                if (!errors) {
-                    var filesCount = files.length;
-                    files.filter(file => options.regex ? !!file.match(options.regex) : true).forEach((file, i) => {
-                        var fileInfo = path.parse(file);
-                        fs.readFile(file, (err, data) => {
-                            if (!err) {
-                                zip.folder(fileInfo.dir).file(fileInfo.base, data);
-                                if (i === filesCount - 1) {
-                                    compress(zip, options.output || `${file}.zip`, options.level);
-                                }
-                            } else {
-                                console.log("filed to read file", err);
-                            }
-                        });
-                    });
+    // .option('-r, --regex <regex>', 'Regex')
+    // .option('-u, --unzip', 'Unzip mode')
+    .action(function(filesAndDirs, options) {
+        const files = [];
+        const dirs = [];
+        let i = 0;
+        filesAndDirs.forEach(f => fs.stat(f, (err, stats) => {
+            if (!err) {
+                if (stats.isFile()) {
+                    files.push(f);
                 } else {
-                    console.log("failed to read files", errors);
+                    dirs.push(f);
                 }
-            });
-        } else {
-            var fileInfo = path.parse(file);
-            fs.readFile(file, (err, data) => {
-                if (!err) {
-                    zip.file(fileInfo.base, data);
-                    compress(zip, options.output || `${fileInfo.base}.zip`, options.level);
-                }
-            });
-        }
+            }
+            if (++i === filesAndDirs.length) {
+                const zip = new JSZip();
+                const finalize = () => compress(zip, options.output || `${filesAndDirs[0]}.zip`, options.level);
+                let j = 0;
+                processFiles(zip, files, () => {if (++j === 2 ) finalize(); })
+                processDirectories(zip, dirs, () => {if (++j === 2 ) finalize(); })
+            }
+        }));
     })
     .parse(process.argv);
 
-function addAssetsToZip(jszip, assets, regex) {
-    const assetNames = Object.keys(assets).filter(x => !!regex ? regex.test(x) : true);
-    assetNames.forEach(x => jszip.file(x, assets[x].source()));
+function processFiles(zip, files, completeCallback) {
+    readFiles(
+        files,
+        (fileInfo, data) => zip.file(fileInfo.base, data),
+        () => completeCallback()
+    );
+}
+
+function processDirectories(zip, dirs, completeCallback) {
+    let i = 0;
+    dirs.forEach(dir => {
+        zip.folder(dir);
+        recursive(dir, (errors, files) => {
+            if (!errors) {
+                readFiles(
+                    files,
+                    (fileInfo, data) => zip.folder(fileInfo.dir).file(fileInfo.base, data),
+                    () => { if (++i === dirs.length) { completeCallback(); } }
+                );
+            } else {
+                console.log("failed to read files", errors);
+            }
+        });
+    });
+}
+
+function readFiles(files, fileCallback, completeCallback) {
+    console.log("read files", files);
+    files.forEach((file, i) => {
+        var fileInfo = path.parse(file);
+        fs.readFile(file, (err, data) => {
+            if (!err) {
+                fileCallback(fileInfo, data);
+                if (i === files.length - 1) {
+                    completeCallback();
+                }
+            } else {
+                console.log("filed to read file", err);
+            }
+        });
+    });
 }
 
 function compress(jszip, outFile, level) {
