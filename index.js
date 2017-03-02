@@ -77,7 +77,7 @@ function processDirectories(zip, dirs, completeCallback) {
                 if (!errors) {
                     readFiles(
                         files,
-                        (fileInfo, data) => addFileToZip(zip, fileInfo, data, dir.flatten, dir.root ? dir.name + "\\" : ""),
+                        (fileInfo, data) => addFileToZip(zip, fileInfo, data, dir.flatten, dir.root ? dir.name : ""),
                         () => { if (++i === dirs.length) { completeCallback(); } }
                     );
                 } else {
@@ -95,7 +95,7 @@ function addFileToZip(zip, fileInfo, data, flatten, root) {
     if (flatten) {
         zip.file(fileInfo.base, data);
     } else {
-        zip.folder(fileInfo.dir.replace(path.normalize(root), "").replace(/^(..\\)+/, "")).file(fileInfo.base, data);
+        zip.folder(fileInfo.dir.replace(path.normalize(root), "").replace(/^((..)?\\)+/, "")).file(fileInfo.base, data);
     }
 }
 
