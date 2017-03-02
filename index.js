@@ -95,7 +95,7 @@ function addFileToZip(zip, fileInfo, data, flatten, root) {
     if (flatten) {
         zip.file(fileInfo.base, data);
     } else {
-        zip.folder(fileInfo.dir.replace(/^(..\\)+/, "").replace(root, "")).file(fileInfo.base, data);
+        zip.folder(fileInfo.dir.replace(path.normalize(root), "").replace(/^(..\\)+/, "")).file(fileInfo.base, data);
     }
 }
 

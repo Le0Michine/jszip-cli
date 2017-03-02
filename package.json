@@ -1,6 +1,6 @@
 {
   "name": "jszip-cli",
-  "version": "1.4.19",
+  "version": "1.4.21",
   "description": "npm interface for JSZip",
   "repository": {
     "type": "git",
