@@ -70,14 +70,14 @@ function processDirectories(zip, dirs, completeCallback) {
     if (dirs.length) {
         let i = 0;
         dirs.forEach(dir => {
-            if (!dir.deflate) {
+            if (!dir.flatten && !dir.root) {
                 zip.folder(dir.name || dir);
             }
             recursive(dir.name || dir, (errors, files) => {
                 if (!errors) {
                     readFiles(
                         files,
-                        (fileInfo, data) => addFileToZip(zip, fileInfo, data, dir.deflate),
+                        (fileInfo, data) => addFileToZip(zip, fileInfo, data, dir.flatten, dir.root ? dir.name + "\\" : ""),
                         () => { if (++i === dirs.length) { completeCallback(); } }
                     );
                 } else {
@@ -90,12 +90,12 @@ function processDirectories(zip, dirs, completeCallback) {
     }
 }
 
-function addFileToZip(zip, fileInfo, data, deflate) {
+function addFileToZip(zip, fileInfo, data, flatten, root) {
     // console.log("add file", fileInfo.dir);
-    if (deflate) {
+    if (flatten) {
         zip.file(fileInfo.base, data);
     } else {
-        zip.folder(fileInfo.dir.replace(/^(..\\)+/, "")).file(fileInfo.base, data);
+        zip.folder(fileInfo.dir.replace(/^(..\\)+/, "").replace(root, "")).file(fileInfo.base, data);
     }
 }
 

@@ -27,8 +27,9 @@ Example of config file jszip.json:
 ```
 {
     "entities": [
-        { "name": "./some-directory", "deflate": true },
-        "another-directory",
+        { "name": "./some-directory", "flatten": true }, // files without directory structure
+        { "name": "./another-directory", "root": true }, // directory content without directory itself
+        "yet-another-directory",
         "file"
     ],
     "options": {
