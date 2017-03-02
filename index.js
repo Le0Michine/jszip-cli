@@ -5,61 +5,98 @@ var JSZip = require('jszip');
 var program = require('commander');
 var recursive = require('recursive-readdir');
 var ProgressBar = require('progress');
+var jsonfile = require('jsonfile');
 
 program
     .arguments('<entries...>')
     // .option('-d, --directory', 'Input entry is a directory to compress')
     .option('-o, --output <output>', 'Output file')
     .option('-l, --level <compressLevel>', 'Compress level')
+    .option('-c, --config', 'Entry is a config file')
     // .option('-r, --regex <regex>', 'Regex')
     // .option('-u, --unzip', 'Unzip mode')
     .action(function(filesAndDirs, options) {
-        const files = [];
-        const dirs = [];
-        let i = 0;
-        filesAndDirs.forEach(f => fs.stat(f, (err, stats) => {
-            if (!err) {
-                if (stats.isFile()) {
-                    files.push(f);
+        if (options.config) {
+            jsonfile.readFile(filesAndDirs[0], (err, obj) => {
+                if (!err) {
+                    startProcessing(obj.entities, Object.assign({}, options, obj.options));
                 } else {
-                    dirs.push(f);
+                    console.error(`unable to read config file ${options.config}`);
                 }
-            }
-            if (++i === filesAndDirs.length) {
-                const zip = new JSZip();
-                const finalize = () => compress(zip, options.output || `${filesAndDirs[0]}.zip`, options.level);
-                let j = 0;
-                processFiles(zip, files, () => {if (++j === 2 ) finalize(); })
-                processDirectories(zip, dirs, () => {if (++j === 2 ) finalize(); })
-            }
-        }));
+            });
+        } else {
+            startProcessing(filesAndDirs, options);
+        }
     })
     .parse(process.argv);
 
+function startProcessing(filesAndDirs, options) {
+    const files = [];
+    const dirs = [];
+    let i = 0;
+    filesAndDirs.forEach(f => fs.stat(f.name || f, (err, stats) => {
+        if (!err) {
+            if (stats.isFile()) {
+                files.push(f);
+            } else {
+                dirs.push(f);
+            }
+        }
+        if (++i === filesAndDirs.length) {
+            const zip = new JSZip();
+            const finalize = () => compress(zip, options.output || `${filesAndDirs[0]}.zip`, options.level);
+            let j = 0;
+            processFiles(zip, files, () => {if (++j === 2 ) finalize(); })
+            processDirectories(zip, dirs, () => {if (++j === 2 ) finalize(); })
+        }
+    }));
+}
+
 function processFiles(zip, files, completeCallback) {
-    readFiles(
-        files,
-        (fileInfo, data) => zip.file(fileInfo.base, data),
-        () => completeCallback()
-    );
+    // console.log("files:", files);
+    if (files.length) {
+        readFiles(
+            files,
+            (fileInfo, data) => addFileToZip(zip, fileInfo, data, false),
+            () => completeCallback()
+        );
+    } else {
+        completeCallback();
+    }
 }
 
 function processDirectories(zip, dirs, completeCallback) {
-    let i = 0;
-    dirs.forEach(dir => {
-        zip.folder(dir);
-        recursive(dir, (errors, files) => {
-            if (!errors) {
-                readFiles(
-                    files,
-                    (fileInfo, data) => zip.folder(fileInfo.dir).file(fileInfo.base, data),
-                    () => { if (++i === dirs.length) { completeCallback(); } }
-                );
-            } else {
-                console.log("failed to read files", errors);
+    // console.log("dirs:", dirs);
+    if (dirs.length) {
+        let i = 0;
+        dirs.forEach(dir => {
+            if (!dir.deflate) {
+                zip.folder(dir.name || dir);
             }
+            recursive(dir.name || dir, (errors, files) => {
+                if (!errors) {
+                    readFiles(
+                        files,
+                        (fileInfo, data) => addFileToZip(zip, fileInfo, data, dir.deflate),
+                        () => { if (++i === dirs.length) { completeCallback(); } }
+                    );
+                } else {
+                    console.log("failed to read files", errors);
+                }
+            });
         });
-    });
+    } else {
+        completeCallback();
+    }
+}
+
+function addFileToZip(zip, fileInfo, data, deflate) {
+    // console.log("add file", fileInfo.dir);
+    if (deflate) {
+        zip.file(fileInfo.base, data);
+    } else {
+        zip.folder(fileInfo.dir.replace(/^(..\\)+/, "")).file(fileInfo.base, data);
+    }
 }
 
 function readFiles(files, fileCallback, completeCallback) {

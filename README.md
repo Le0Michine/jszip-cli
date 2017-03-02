@@ -17,8 +17,24 @@ Options:
 ```
 <entries>                    One or more files or directories, should be space separated
 -h, --help                   Output usage information
+-c, --config                 Entry is a config file
 -o, --output <output>        Output file
 -l, --level <compressLevel>  Compress level
+```
+
+Example of config file jszip.json:
+
+```
+{
+    "entities": [
+        { "name": "./some-directory", "deflate": true },
+        "another-directory",
+        "file"
+    ],
+    "options": {
+        "output": "out.zip"
+    }
+}
 ```
 
 Getting support
