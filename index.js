@@ -57,7 +57,7 @@ function processFiles(zip, files, completeCallback) {
     if (files.length) {
         readFiles(
             files,
-            (fileInfo, data) => addFileToZip(zip, fileInfo, data, false),
+            (fileInfo, data) => addFileToZip(zip, fileInfo, data, true),
             () => completeCallback()
         );
     } else {
@@ -95,7 +95,7 @@ function addFileToZip(zip, fileInfo, data, flatten, root) {
     if (flatten) {
         zip.file(fileInfo.base, data);
     } else {
-        zip.folder(fileInfo.dir.replace(path.normalize(root), "").replace(/^((..)?\\)+/, "")).file(fileInfo.base, data);
+        zip.folder(fileInfo.dir.replace(path.normalize(root || ""), "").replace(/^((..)?\\)+/, "")).file(fileInfo.base, data);
     }
 }
 
