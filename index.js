@@ -63,7 +63,6 @@ function processDirectories(zip, dirs, completeCallback) {
 }
 
 function readFiles(files, fileCallback, completeCallback) {
-    console.log("read files", files);
     files.forEach((file, i) => {
         var fileInfo = path.parse(file);
         fs.readFile(file, (err, data) => {
